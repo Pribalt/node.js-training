@@ -7,28 +7,28 @@ const {
 } = require("../services/tasksServices");
 const { asyncWrapper } = require("../utils/asyncWrapper");
 
-let getTasks = async (req, res, next) => {
-  const tasks = await getTasksService();
+const getTasks = asyncWrapper(async (req, res) => {
+  const { page = 1, limit = 10, completed } = req.query;
+  const tasks = await getTasksService(page, limit, completed);
   res.json(tasks);
-};
-getTasks = asyncWrapper(getTasks);
+});
 
-const getTasksById = asyncWrapper(async (req, res, next) => {
+const getTasksById = asyncWrapper(async (req, res) => {
   const { taskId } = req.params;
   const oneTask = await getTaskByIdService(taskId);
   res.json(oneTask);
 });
 
-const addTasks = async (req, res, next) => {
+const addTasks = asyncWrapper(async (req, res, next) => {
   try {
     const newTask = await addTaskService(req.body);
     res.status(201).json(newTask);
   } catch (error) {
     next(error);
   }
-};
+});
 
-const updateTask = async (req, res, next) => {
+const updateTask = asyncWrapper(async (req, res, next) => {
   try {
     const { taskId } = req.params;
     const updateTask = await updateTasksService(taskId, req.body);
@@ -36,9 +36,9 @@ const updateTask = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+});
 
-const deleteTask = async (req, res, next) => {
+const deleteTask = asyncWrapper(async (req, res, next) => {
   try {
     const { taskId } = req.params;
     const deleteTaskId = await deleteTasksService(taskId);
@@ -50,7 +50,7 @@ const deleteTask = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+});
 
 module.exports = {
   getTasks,
