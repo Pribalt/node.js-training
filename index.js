@@ -1,5 +1,18 @@
+require("dotenv").config();
+const mongoose = require("mongoose");
 const { app } = require("./app");
 
-app.listen(3030, () => {
-  console.log("Server is upRunning on port 3030 ");
-});
+const { DB_URI, PORT } = process.env;
+
+(async () => {
+  await mongoose.connect(DB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  console.log("Database connection successful");
+
+  app.listen(PORT, () => {
+    console.log(`Server is upRunning on port ${PORT}`);
+  });
+})();

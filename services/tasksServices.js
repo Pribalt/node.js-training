@@ -1,69 +1,53 @@
-const fs = require("fs/promises");
-const path = require("path");
-// const tasksPath = path.join(__dirname, "db", "tasks.json")
-const tasksPath = path.join(process.cwd(), "db", "tasks.json");
-const crypto = require("crypto");
 const { HttpError } = require("../utils/HttpError");
+const { Task } = require("../models/Task");
+const { request } = require("express");
 
-const writeDb = (tasks) => {
-  return fs.writeFile(tasksPath, JSON.stringify(tasks, null, 2));
-};
+const getTasksService = async (page, limit, completed) => {
+  const skip = (page - 1) * limit;
 
-const getTasksService = async () => {
-  const tasks = await fs.readFile(tasksPath);
+  const filter = {};
 
-  return JSON.parse(tasks);
+  if (completed === "true") {
+    filter.completed = true;
+  }
+
+  if (completed === "false") {
+    filter.completed = false;
+  }
+
+  return await Task.find(filter).limit(limit).skip(skip);
 };
 
 const getTaskByIdService = async (taskId) => {
-  const tasks = await getTasksService();
+  const task = await Task.findById(taskId);
 
-  return tasks.find(({ id }) => id === taskId);
+  if (!task) {
+    throw new HttpError(404);
+  }
+
+  return task;
 };
 
 const addTaskService = async (data) => {
-  const tasks = await getTasksService();
-  const newTask = {
-    id: crypto.randomUUID(),
-    ...data,
-  };
-
-  tasks.push(newTask);
-
-  await writeDb(tasks);
-
-  return newTask;
+  return await Task.create(data);
 };
 
 const updateTasksService = async (taskId, data) => {
-  const tasks = await getTasksService();
-  const index = tasks.findIndex(({ id }) => id === taskId);
+  const task = await Task.findByIdAndUpdate(taskId, data, { new: true });
 
-  if (index === -1) {
-    //  throw new Error("Task not found");
-    throw new HttpError(404, "Task not found");
+  if (!task) {
+    throw new HttpError(404);
   }
 
-  //   tasks[index] = { ...tasks[index], ...data };
-  tasks.splice(index, 1, { ...tasks[index], ...data });
-
-  await writeDb(tasks);
-
-  return tasks[index];
+  return task;
 };
 
 const deleteTasksService = async (taskId) => {
-  const tasks = await getTasksService();
-  const index = tasks.findIndex(({ id }) => id === taskId);
+  const task = await Task.findByIdAndDelete(taskId);
 
-  if (index === -1) {
-    //  throw new Error("Task not found");
-    throw new HttpError(404, "Task not found");
+  if (!task) {
+    throw new HttpError(404);
   }
-
-  tasks.splice(index, 1);
-
-  await writeDb(tasks);
 
   return taskId;
 };
