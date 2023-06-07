@@ -1,5 +1,4 @@
 const express = require("express");
-
 const {
   getTasks,
   getTasksById,
@@ -7,7 +6,6 @@ const {
   updateTask,
   deleteTask,
 } = require("../controllers/tasksControlers");
-
 const { validateBody } = require("../utils/validation/validateBody");
 const {
   createTaskValidationSchema,
